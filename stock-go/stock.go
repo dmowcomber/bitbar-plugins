@@ -18,19 +18,18 @@ import (
 )
 
 var (
+	// TODO: make these configurable
+	stockTicker = "GOOG"
+	graphRange  = day
+
 	upTriangle   = aurora.Green("▲")
 	downTriangle = aurora.Red("▼")
-
-	graphRange = day
-	// graphRange = week
-	// graphRange = month
 )
 
 const (
 	day   = "day" // default
 	week  = "week"
 	month = "month"
-	year  = "year"
 )
 
 func main() {
@@ -40,9 +39,9 @@ func main() {
 		fmt.Println("Refresh Me| terminal=false refresh=true")
 	}()
 
-	q, err := quote.Get("TWLO")
+	q, err := quote.Get(stockTicker)
 	if err != nil {
-		fmt.Println("TWLO: err")
+		fmt.Printf("%s: err\n", stockTicker)
 		fmt.Println("---")
 		fmt.Println(err.Error())
 		return
@@ -51,17 +50,9 @@ func main() {
 	if !(q.MarketState == finance.MarketStateRegular || q.MarketState == finance.MarketStatePre) {
 		fmt.Println("💤")
 		fmt.Println("---")
-	} else if q.RegularMarketPrice < 455.0 {
-		now := time.Now()
-		blackOutStarts := time.Date(2018, time.September, 10, 0, 0, 0, 0, time.UTC)
-		blackOutEnds := time.Date(2020, time.October, 26, 0, 0, 0, 0, time.UTC)
-		nextBlackOutStart := time.Date(2020, time.December, 10, 0, 0, 0, 0, time.UTC)
-		if (now.After(blackOutStarts) && now.Before(blackOutEnds)) ||
-			now.After(nextBlackOutStart) {
-			// just show the twilio logo
-			fmt.Println("| color=green image=iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAHlBMVEXtIydHcEztIyftIyftIyftIyftIyftIyftIyftIyf7ZSykAAAACXRSTlOVAB/aordBStM/AzZ9AAAAW0lEQVQYlWVPgQ3AIAgrKGL/f3hlc1kWmjRibQVggmOQA141xMmD+QibjHTPIHcJel92Y5UHXnfIKEpxgGEgUbTQOZifkOoll70RU74LLdI+bW3bYH30vtx//QsjTgQF31UzawAAAABJRU5ErkJggg==")
-			fmt.Println("---")
-		}
+	} else {
+		fmt.Printf("%s\n", stockTicker)
+		fmt.Println("---")
 	}
 
 	triangle := upTriangle
@@ -71,29 +62,18 @@ func main() {
 		chartColor = chart.ColorRed
 	}
 
-	twloGraph := getChart("twlo")
+	graph := getChart(stockTicker)
 
 	// TODO: fix this. the graph is broken during POST
-	smallGraphText := getGraphText(twloGraph, nil, chartColor, true)
+	smallGraphText := getGraphText(graph, nil, chartColor, true)
 
-	// prefix := fmt.Sprintf("%s: %.2f%s", aurora.Red(q.Symbol), q.RegularMarketPrice, triangle)
 	prefix := fmt.Sprintf("%.2f%s", q.RegularMarketPrice, triangle)
-
-	// fmt.Printf("%s$%.2f\n", prefix, q.RegularMarketChangePercent)
 
 	fmt.Printf("%s$%.2f %s\n", prefix, q.RegularMarketChange, smallGraphText)
 	fmt.Printf("%s%.2f%% %s\n", prefix, q.RegularMarketChangePercent, smallGraphText)
 
-	// want := 320
-	// percentageOfWant := ((320 / q.RegularMarketPrice) - 1) * 100
-	// fmt.Printf("down %.1f%% from $%d\n", percentageOfWant, want)
-
 	// output in dropdown only
 	fmt.Println("---")
-
-	// fmt.Println(aurora.Green("\UD83DDD50"))
-	// fmt.Println(aurora.Green("\U0001f550"))
-	// fmt.Println(aurora.Green("\ud83d \udd50"))
 	fmt.Printf("pre market price: %6.2f\n", aurora.White(q.PreMarketPrice))
 	fmt.Printf("post market price: %6.2f\n", aurora.White(q.PostMarketPrice))
 	fmt.Printf("Bid: %6.2f\n", aurora.White(q.Bid))
@@ -116,21 +96,7 @@ func main() {
 	fmt.Printf("%s\n", textColor)
 
 	fmt.Println("---")
-	fmt.Println(getGraphText(twloGraph, nil, chartColor, false))
-
-	// splkGraph := getChart("splk")
-	// oktaGraph := getChart("okta")
-	// msftGraph := getChart("msft")
-	//
-	// printGraph(twloGraph, splkGraph)
-	// printGraph(twloGraph, oktaGraph)
-	// printGraph(twloGraph, msftGraph)
-
-	// fmt.Printf("FiftyTwoWeekHighChange: %.2f\n", aurora.White(q.FiftyTwoWeekHighChange))
-	// fmt.Printf("FiftyTwoWeekLowChange: %.2f\n", aurora.White(q.FiftyTwoWeekLowChange))
-	// fmt.Printf("FiftyDayAverage: %.2f\n", aurora.White(q.FiftyDayAverage))
-	// fmt.Printf("TwoHundredDayAverage: %.2f\n", aurora.White(q.TwoHundredDayAverage))
-
+	fmt.Println(getGraphText(graph, nil, chartColor, false))
 }
 
 func getChart(symbol string) *chartItem {
@@ -203,20 +169,6 @@ func getGraphText(chart1, chart2 *chartItem, chartColor drawing.Color, small boo
 		height = 26
 	}
 
-	// if len(chart1.timeValues) == 0 || len(chart1.priceValues) == 0 {
-	// 	return "error: chart axixes are 0 length"
-	// }
-	//
-	// if chart2 != nil && (len(chart2.timeValues) == 0 || len(chart2.priceValues) == 0) {
-	// 	return "error: chart axixes are 0 length"
-	// }
-
-	// graph := asciigraph.Plot(priceValuesTwlo)
-	// graphLines := strings.Split(graph, "\n")
-	// for _, graphLine := range graphLines {
-	// 	fmt.Printf("%s%s", graphLine, " | ansi=true font=courier trim=false\n")
-	// }
-
 	// default format to dates
 	valueFormatter := chart.TimeValueFormatterWithFormat("01-02")
 	if graphRange == day {
@@ -227,24 +179,11 @@ func getGraphText(chart1, chart2 *chartItem, chartColor drawing.Color, small boo
 	graph := chart.Chart{
 		Width:  width,
 		Height: height,
-		// ColorPalette: chart.AlternateColorPalette,
 		XAxis: chart.XAxis{
-			// ValueFormatter: chart.TimeMinuteValueFormatter,
-			// ValueFormatter: chart.TimeValueFormatterWithFormat("01-02 3:04PM"),
 			ValueFormatter: valueFormatter,
 		},
-		// YAxis: chart.YAxis{
-		// 	ValueFormatter: chart.mon
-		// }
-		// Background: chart.Style{
-		// 	FillColor: drawing.ColorBlue,
-		// },
-		// Canvas: chart.Style{
-		// 	FillColor: drawing.ColorFromHex("efefef"),
-		// },
 
 		Background: chart.Style{
-			// Padding:     chart.NewBox(2, 0, 0, 2),
 			FillColor:   chart.ColorWhite,
 			FontColor:   chart.ColorWhite,
 			StrokeColor: chart.ColorWhite,
@@ -266,18 +205,11 @@ func getGraphText(chart1, chart2 *chartItem, chartColor drawing.Color, small boo
 				XValues: chart1.timeValues,
 				YValues: chart1.priceValues,
 			},
-			// chart.TimeSeries{
-			// 	// YAxis:   chart.YAxisSecondary,
-			// 	Name:    chart2.name,
-			// 	XValues: chart2.timeValues,
-			// 	YValues: chart2.priceValues,
-			// },
 		},
 	}
 
 	if chart2 != nil {
 		timeSeries2 := chart.TimeSeries{
-			// YAxis:   chart.YAxisSecondary,
 			Name:    chart2.name,
 			XValues: chart2.timeValues,
 			YValues: chart2.priceValues,
@@ -286,8 +218,6 @@ func getGraphText(chart1, chart2 *chartItem, chartColor drawing.Color, small boo
 	}
 
 	graph.Elements = []chart.Renderable{
-		// chart.LegendLeft(&graph),
-		// chart.LegendThin(&graph),
 		chart.Legend(&graph),
 	}
 
@@ -315,42 +245,4 @@ func getGraphText(chart1, chart2 *chartItem, chartColor drawing.Color, small boo
 
 	imageBase64 := base64.StdEncoding.EncodeToString(buffer.Bytes())
 	return fmt.Sprintf("| image=%s\n", imageBase64)
-
-	// ...
-
-	// graph := chart.Chart{
-	// 	Series: []chart.Series{
-	// 		chart.ContinuousSeries{
-	// 			XValues: xValues,
-	// 			YValues: []float64{1.0, 2.0, 3.0, 4.0},
-	// 		},
-	// 	},
-	// }
-	//
-	// buffer := bytes.NewBuffer([]byte{})
-	// err := graph.Render(chart.PNG, buffer)
-	// if err != nil {
-	// 	fmt.Println("---")
-	// 	fmt.Println(err.Error())
-	// }
-	//
-	// imageBase64 := base64.StdEncoding.EncodeToString(buffer.Bytes())
-	// fmt.Printf("| image=%s\n", imageBase64)
-
-	// ...
-
-	// graph := chart.Chart{
-	// 	Series: []chart.Series{
-	// 		chart.ContinuousSeries{
-	// 			XValues: []float64{1.0, 2.0, 3.0, 4.0},
-	// 			YValues: []float64{1.0, 2.0, 3.0, 4.0},
-	// 		},
-	// 	},
-	// }
-	//
-	// buffer := bytes.NewBuffer([]byte{})
-	// err := graph.Render(chart.PNG, buffer)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// }
 }
