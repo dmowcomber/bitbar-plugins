@@ -1,5 +1,5 @@
-# bitbar-plugins
+# xbar-plugins
 
-Custom bitbar plugins.
+Custom xbar plugins.
 
-Download bitbar from [https://xbarapp.com/](https://xbarapp.com/)
+Download xbar from [https://xbarapp.com/](https://xbarapp.com/)
